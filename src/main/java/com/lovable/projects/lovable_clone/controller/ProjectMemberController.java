@@ -2,7 +2,6 @@ package com.lovable.projects.lovable_clone.controller;
 
 import com.lovable.projects.lovable_clone.dto.member.InviteMemberRequest;
 import com.lovable.projects.lovable_clone.dto.member.MemberResponse;
-import com.lovable.projects.lovable_clone.entity.ProjectMember;
 import com.lovable.projects.lovable_clone.service.ProjectMemberService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,7 @@ public class ProjectMemberController {
     ProjectMemberService projectMemberService;
 
     @GetMapping
-    public ResponseEntity<List<ProjectMember>> getProjectMembers(@PathVariable Long projectId) {
+    public ResponseEntity<List<MemberResponse>> getProjectMembers(@PathVariable Long projectId) {
         Long userId = 1L;
         return ResponseEntity.ok(projectMemberService.getProjectMembers(projectId, userId));
     }
