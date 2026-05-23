@@ -2,6 +2,7 @@ package com.lovable.projects.lovable_clone.controller;
 
 import com.lovable.projects.lovable_clone.dto.member.InviteMemberRequest;
 import com.lovable.projects.lovable_clone.dto.member.MemberResponse;
+import com.lovable.projects.lovable_clone.dto.member.UpdateMemberRoleRequest;
 import com.lovable.projects.lovable_clone.service.ProjectMemberService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class ProjectMemberController {
     public ResponseEntity<MemberResponse> updateMemberRole(
             @PathVariable Long projectId,
             @PathVariable Long memberId,
-            @RequestBody InviteMemberRequest request
+            @RequestBody UpdateMemberRoleRequest request
     ) {
         Long userId = 1L;
         return ResponseEntity.ok(projectMemberService.updateMemberRole(projectId, memberId, request, userId));
