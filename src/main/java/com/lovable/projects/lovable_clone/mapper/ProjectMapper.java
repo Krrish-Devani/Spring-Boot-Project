@@ -13,7 +13,6 @@ public interface ProjectMapper {
 
     ProjectResponse toProjectResponse(Project project);
 
-    @Mapping(source = "name", target = "projectName")
     ProjectSummaryResponse toProjectSummaryResponse(Project project);
 
     List<ProjectSummaryResponse> toListOfProjectSummaryResponse(List<Project> projects);
