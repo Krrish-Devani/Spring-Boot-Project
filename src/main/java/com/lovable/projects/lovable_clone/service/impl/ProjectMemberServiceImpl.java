@@ -26,7 +26,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
-    public MemberResponse deleteProjectMember(Long projectId, Long memberId, Long userId) {
-        return null;
+    public void removeProjectMember(Long projectId, Long memberId, Long userId) {
+
     }
 }
