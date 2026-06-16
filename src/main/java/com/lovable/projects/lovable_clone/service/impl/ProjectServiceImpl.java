@@ -6,6 +6,7 @@ import com.lovable.projects.lovable_clone.dto.project.ProjectSummaryResponse;
 import com.lovable.projects.lovable_clone.entity.Project;
 import com.lovable.projects.lovable_clone.entity.User;
 import com.lovable.projects.lovable_clone.mapper.ProjectMapper;
+import com.lovable.projects.lovable_clone.repository.ProjectMemberRepository;
 import com.lovable.projects.lovable_clone.repository.ProjectRepository;
 import com.lovable.projects.lovable_clone.repository.UserRepository;
 import com.lovable.projects.lovable_clone.service.ProjectService;
@@ -24,6 +25,7 @@ import java.util.List;
 public class ProjectServiceImpl implements ProjectService {
 
     ProjectRepository projectRepository;
+    ProjectMemberRepository projectMemberRepository;
     UserRepository userRepository;
     ProjectMapper projectMapper;
 
@@ -44,13 +46,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<ProjectSummaryResponse> getUserProjects(Long userId) {
-        //        return projectRepository.findAllAccessibleByUser(userId)
-//                .stream()
-//                .map(projectMapper::toProjectSummaryResponse)
-//                .collect(Collectors.toList());
-
-        var projects = projectRepository.findAllAccessibleByUser(userId);
-        return projectMapper.toListOfProjectSummaryResponse(projects);
+        var projectsWithRoles = projectRepository.findAllAccessibleByUser(userId);
+        return projectsWithRoles.stream()
+                .map(p -> projectMapper.toProjectSummaryResponse());
     }
 
     @Override
