@@ -9,7 +9,9 @@ import com.lovable.projects.lovable_clone.mapper.ProjectMapper;
 import com.lovable.projects.lovable_clone.repository.ProjectMemberRepository;
 import com.lovable.projects.lovable_clone.repository.ProjectRepository;
 import com.lovable.projects.lovable_clone.repository.UserRepository;
+import com.lovable.projects.lovable_clone.security.AuthUtil;
 import com.lovable.projects.lovable_clone.service.ProjectService;
+import com.lovable.projects.lovable_clone.service.SubscriptionService;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +27,11 @@ import java.util.List;
 public class ProjectServiceImpl implements ProjectService {
 
     ProjectRepository projectRepository;
-    ProjectMemberRepository projectMemberRepository;
     UserRepository userRepository;
     ProjectMapper projectMapper;
+    ProjectMemberRepository projectMemberRepository;
+    AuthUtil authUtil;
+    SubscriptionService subscriptionService;
 
     @Override
     public ProjectResponse createProject(ProjectRequest request, Long userId) {
@@ -45,10 +49,14 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<ProjectSummaryResponse> getUserProjects(Long userId) {
+    public List<ProjectSummaryResponse> getUserProjects() {
+
+        Long userId = authUtil.getCurrentUserId();
         var projectsWithRoles = projectRepository.findAllAccessibleByUser(userId);
         return projectsWithRoles.stream()
-                .map(p -> projectMapper.toProjectSummaryResponse());
+                .map(p -> projectMapper.toProjectSummaryResponse(p.getProject(), p.getRole()))
+                .toList();
+
     }
 
     @Override
