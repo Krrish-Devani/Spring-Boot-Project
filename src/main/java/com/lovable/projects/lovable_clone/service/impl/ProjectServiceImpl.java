@@ -106,8 +106,13 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void softDelete(Long id, Long userId) {
+    @PreAuthorize("@security.canDeleteProject(#projectId)")
+    public void softDelete(Long projectId) {
+        Long userId = authUtil.getCurrentUserId();
+        Project project = getAccessibleProjectById(projectId, userId);
 
+        project.setDeletedAt(Instant.now());
+        projectRepository.save(project);
     }
 
     ///  INTERNAL FUNCTIONS
