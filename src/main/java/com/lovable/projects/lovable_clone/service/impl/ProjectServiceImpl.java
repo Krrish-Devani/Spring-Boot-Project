@@ -5,6 +5,7 @@ import com.lovable.projects.lovable_clone.dto.project.ProjectResponse;
 import com.lovable.projects.lovable_clone.dto.project.ProjectSummaryResponse;
 import com.lovable.projects.lovable_clone.entity.Project;
 import com.lovable.projects.lovable_clone.entity.User;
+import com.lovable.projects.lovable_clone.error.BadRequestException;
 import com.lovable.projects.lovable_clone.mapper.ProjectMapper;
 import com.lovable.projects.lovable_clone.repository.ProjectMemberRepository;
 import com.lovable.projects.lovable_clone.repository.ProjectRepository;
@@ -16,6 +17,7 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -60,8 +62,14 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ProjectResponse getUserProjectById(Long id, Long userId) {
-        return null;
+    @PreAuthorize("@security.canViewProject(#projectId)")
+    public ProjectSummaryResponse getUserProjectById(Long projectId) {
+        Long userId = authUtil.getCurrentUserId();
+
+        var projectWithRole = projectRepository.findAccessibleProjectByIdWithRole(projectId, userId)
+                .orElseThrow(() -> new BadRequestException("Project Not Found"));
+
+        return projectMapper.toProjectSummaryResponse(projectWithRole.getProject(), projectWithRole.getRole());
     }
 
     @Override
