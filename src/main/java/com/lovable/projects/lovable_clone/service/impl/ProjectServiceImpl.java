@@ -4,7 +4,10 @@ import com.lovable.projects.lovable_clone.dto.project.ProjectRequest;
 import com.lovable.projects.lovable_clone.dto.project.ProjectResponse;
 import com.lovable.projects.lovable_clone.dto.project.ProjectSummaryResponse;
 import com.lovable.projects.lovable_clone.entity.Project;
+import com.lovable.projects.lovable_clone.entity.ProjectMember;
+import com.lovable.projects.lovable_clone.entity.ProjectMemberId;
 import com.lovable.projects.lovable_clone.entity.User;
+import com.lovable.projects.lovable_clone.enums.ProjectRole;
 import com.lovable.projects.lovable_clone.error.BadRequestException;
 import com.lovable.projects.lovable_clone.mapper.ProjectMapper;
 import com.lovable.projects.lovable_clone.repository.ProjectMemberRepository;
@@ -20,6 +23,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -34,19 +38,37 @@ public class ProjectServiceImpl implements ProjectService {
     ProjectMemberRepository projectMemberRepository;
     AuthUtil authUtil;
     SubscriptionService subscriptionService;
+    //ProjectTemplateService projectTemplateService;
 
     @Override
-    public ProjectResponse createProject(ProjectRequest request, Long userId) {
+    public ProjectResponse createProject(ProjectRequest request) {
 
-        User owner = userRepository.findById(userId).orElseThrow();
+//        if(!subscriptionService.canCreateNewProject()) {
+//            throw new BadRequestException("User cannot create a New project with current Plan, Upgrade plan now.");
+//        }
+
+        Long userId = authUtil.getCurrentUserId();
+        User owner = userRepository.getReferenceById(userId);
 
         Project project = Project.builder()
                 .name(request.name())
-                .owner(owner)
                 .isPublic(false)
                 .build();
-
         project = projectRepository.save(project);
+
+        ProjectMemberId projectMemberId = new ProjectMemberId(project.getId(), owner.getId());
+        ProjectMember projectMember = ProjectMember.builder()
+                .id(projectMemberId)
+                .projectRole(ProjectRole.OWNER)
+                .user(owner)
+                .acceptedAt(Instant.now())
+                .invitedAt(Instant.now())
+                .project(project)
+                .build();
+        projectMemberRepository.save(projectMember);
+
+        //projectTemplateService.initializeProjectFromTemplate(project.getId());
+
         return projectMapper.toProjectResponse(project);
     }
 
