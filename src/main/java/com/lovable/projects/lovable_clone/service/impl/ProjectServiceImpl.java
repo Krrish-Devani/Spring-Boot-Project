@@ -9,6 +9,7 @@ import com.lovable.projects.lovable_clone.entity.ProjectMemberId;
 import com.lovable.projects.lovable_clone.entity.User;
 import com.lovable.projects.lovable_clone.enums.ProjectRole;
 import com.lovable.projects.lovable_clone.error.BadRequestException;
+import com.lovable.projects.lovable_clone.error.ResourceNotFoundException;
 import com.lovable.projects.lovable_clone.mapper.ProjectMapper;
 import com.lovable.projects.lovable_clone.repository.ProjectMemberRepository;
 import com.lovable.projects.lovable_clone.repository.ProjectRepository;
@@ -74,13 +75,11 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<ProjectSummaryResponse> getUserProjects() {
-
         Long userId = authUtil.getCurrentUserId();
         var projectsWithRoles = projectRepository.findAllAccessibleByUser(userId);
         return projectsWithRoles.stream()
                 .map(p -> projectMapper.toProjectSummaryResponse(p.getProject(), p.getRole()))
                 .toList();
-
     }
 
     @Override
@@ -95,12 +94,26 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ProjectResponse updateProject(Long id, ProjectRequest request, Long userId) {
-        return null;
+    @PreAuthorize("@security.canEditProject(#projectId)")
+    public ProjectResponse updateProject(Long projectId, ProjectRequest request) {
+        Long userId = authUtil.getCurrentUserId();
+        Project project = getAccessibleProjectById(projectId, userId);
+
+        project.setName(request.name());
+        project = projectRepository.save(project);
+
+        return projectMapper.toProjectResponse(project);
     }
 
     @Override
     public void softDelete(Long id, Long userId) {
 
+    }
+
+    ///  INTERNAL FUNCTIONS
+
+    public Project getAccessibleProjectById(Long projectId, Long userId) {
+        return projectRepository.findAccessibleProjectById(projectId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", projectId.toString()));
     }
 }

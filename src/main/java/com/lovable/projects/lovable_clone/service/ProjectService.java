@@ -13,7 +13,7 @@ public interface ProjectService {
 
     ProjectResponse createProject(ProjectRequest request);
 
-    ProjectResponse updateProject(Long id, ProjectRequest request, Long userId);
+    ProjectResponse updateProject(Long id, ProjectRequest request);
 
     void softDelete(Long id, Long userId);
 }
