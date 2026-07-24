@@ -92,8 +92,18 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
+    @PreAuthorize("@security.canManageMembers(#projectId)")
     public void removeProjectMember(Long projectId, Long memberId) {
+        Long userId = authUtil.getCurrentUserId();
+        Project project = getAccessibleProjectById(projectId, userId);
 
+        ProjectMemberId projectMemberId = new ProjectMemberId(projectId, memberId);
+
+        if(!projectMemberRepository.existsById(projectMemberId)) {
+            throw new RuntimeException("Member not found in project");
+        }
+
+        projectMemberRepository.deleteById(projectMemberId);
     }
 
     ///  INTERNAL FUNCTIONS
