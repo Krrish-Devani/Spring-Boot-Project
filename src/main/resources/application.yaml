@@ -27,3 +27,6 @@ jwt:
 stripe:
   api:
     secret: ${STRIPE_API_SECRET}
+
+client:
+  url: http://localhost:8080
