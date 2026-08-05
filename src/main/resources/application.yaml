@@ -23,3 +23,7 @@ spring:
 
 jwt:
   secret-key: ${JWT_SECRET}
+
+stripe:
+  api:
+    secret: ${STRIPE_API_SECRET}
