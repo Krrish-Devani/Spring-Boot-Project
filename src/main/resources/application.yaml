@@ -22,4 +22,4 @@ spring:
         format_sql: true
 
 jwt:
-  secret-key:
+  secret-key: ${JWT_SECRET}
