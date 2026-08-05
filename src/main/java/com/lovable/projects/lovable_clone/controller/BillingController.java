@@ -1,6 +1,7 @@
 package com.lovable.projects.lovable_clone.controller;
 
 import com.lovable.projects.lovable_clone.dto.subscription.*;
+import com.lovable.projects.lovable_clone.service.PaymentProcessor;
 import com.lovable.projects.lovable_clone.service.PlanService;
 import com.lovable.projects.lovable_clone.service.SubscriptionService;
 import lombok.AccessLevel;
@@ -19,6 +20,7 @@ public class BillingController {
 
     PlanService planService;
     SubscriptionService subscriptionService;
+    PaymentProcessor paymentProcessor;
 
     @GetMapping("/plans")
     public ResponseEntity<List<PlanResponse>> getAllPlans() {
@@ -27,22 +29,19 @@ public class BillingController {
 
     @GetMapping("/me/subscription")
     public ResponseEntity<SubscriptionResponse> getMySubscription() {
-        Long userId = 1L;
-        return ResponseEntity.ok(subscriptionService.getCurrentSubscription(userId));
+        return ResponseEntity.ok(subscriptionService.getCurrentSubscription());
     }
 
-    @PostMapping("/stripe/checkout")
+    @PostMapping("/payments/checkout")
     public ResponseEntity<CheckoutResponse> createCheckoutResponse(
             @RequestBody CheckoutRequest request
     ) {
-        Long userId = 1L;
-        return ResponseEntity.ok(subscriptionService.createCheckoutSessionUrl(request, userId));
+        return ResponseEntity.ok(paymentProcessor.createCheckoutSessionUrl(request));
     }
 
-    @PostMapping("/stripe/portal")
+    @PostMapping("/payments/portal")
     public ResponseEntity<PortalResponse> openCustomerPortal() {
-        Long userId = 1L;
-        return ResponseEntity.ok(subscriptionService.openCustomerPortal(userId));
+        return ResponseEntity.ok(paymentProcessor.openCustomerPortal());
     }
 
 }
