@@ -12,6 +12,7 @@ import com.lovable.projects.lovable_clone.security.AuthUtil;
 import com.lovable.projects.lovable_clone.service.PaymentProcessor;
 import com.lovable.projects.lovable_clone.service.SubscriptionService;
 import com.stripe.exception.StripeException;
+import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.AccessLevel;
@@ -20,6 +21,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -79,4 +82,11 @@ public class StripePaymentProcessor implements PaymentProcessor {
     public PortalResponse openCustomerPortal() {
         return null;
     }
+
+    @Override
+    public void handleWebhookEvent(String type, StripeObject stripeObject, Map<String, String> metadata) {
+
+    }
+
+
 }
