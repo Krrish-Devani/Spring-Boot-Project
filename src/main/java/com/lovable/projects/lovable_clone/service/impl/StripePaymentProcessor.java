@@ -13,10 +13,7 @@ import com.lovable.projects.lovable_clone.security.AuthUtil;
 import com.lovable.projects.lovable_clone.service.PaymentProcessor;
 import com.lovable.projects.lovable_clone.service.SubscriptionService;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Invoice;
-import com.stripe.model.Price;
-import com.stripe.model.StripeObject;
-import com.stripe.model.Subscription;
+import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.AccessLevel;
@@ -121,6 +118,31 @@ public class StripePaymentProcessor implements PaymentProcessor {
         }
 
         subscriptionService.activateSubscription(userId, planId, subscriptionId, customerId);
+    }
+
+    private void handleCustomerSubscriptionUpdated(Subscription subscription) {
+        if (subscription == null) {
+            log.error("subscription object was null inside handleCustomerSubscriptionUpdated");
+            return;
+        }
+
+        SubscriptionStatus status = mapStripeStatusToEnum(subscription.getStatus());
+        if (status == null) {
+            log.warn("Unknown status '{}' for subscription {}", subscription.getStatus(), subscription.getId());
+            return;
+        }
+
+        SubscriptionItem item = subscription.getItems().getData().get(0);
+        Instant periodStart = toInstant(item.getCurrentPeriodStart());
+        Instant periodEnd = toInstant(item.getCurrentPeriodEnd());
+
+        Long planId = resolvePlanId(item.getPrice());
+
+        subscriptionService.updateSubscription(
+                subscription.getId(), status, periodStart, periodEnd,
+                subscription.getCancelAtPeriodEnd(), planId
+        );
+
     }
 
     /// // Utility Methods
