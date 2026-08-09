@@ -5,6 +5,7 @@ import com.lovable.projects.lovable_clone.dto.subscription.CheckoutResponse;
 import com.lovable.projects.lovable_clone.dto.subscription.PortalResponse;
 import com.lovable.projects.lovable_clone.entity.Plan;
 import com.lovable.projects.lovable_clone.entity.User;
+import com.lovable.projects.lovable_clone.enums.SubscriptionStatus;
 import com.lovable.projects.lovable_clone.error.ResourceNotFoundException;
 import com.lovable.projects.lovable_clone.repository.PlanRepository;
 import com.lovable.projects.lovable_clone.repository.UserRepository;
@@ -13,6 +14,7 @@ import com.lovable.projects.lovable_clone.service.PaymentProcessor;
 import com.lovable.projects.lovable_clone.service.SubscriptionService;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Invoice;
+import com.stripe.model.Price;
 import com.stripe.model.StripeObject;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
@@ -24,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Map;
 
 @Slf4j
@@ -99,5 +102,66 @@ public class StripePaymentProcessor implements PaymentProcessor {
         }
     }
 
+    private void handleCheckoutSessionCompleted(Session session, Map<String, String> metadata) {
+        if(session == null) {
+            log.error("session object was null");
+            return;
+        }
 
+        Long userId = Long.parseLong(metadata.get("user_id"));
+        Long planId = Long.parseLong(metadata.get("plan_id"));
+
+        String subscriptionId = session.getSubscription();
+        String customerId = session.getCustomer();
+
+        User user = getUser(userId);
+        if(user.getStripeCustomerId() == null) {
+            user.setStripeCustomerId(customerId);
+            userRepository.save(user);
+        }
+
+        subscriptionService.activateSubscription(userId, planId, subscriptionId, customerId);
+    }
+
+    /// // Utility Methods
+
+    private User getUser(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() ->
+                new ResourceNotFoundException("user", userId.toString()));
+    }
+
+    private SubscriptionStatus mapStripeStatusToEnum(String status) {
+        return switch (status) {
+            case "active" -> SubscriptionStatus.ACTIVE;
+            case "trialing" -> SubscriptionStatus.TRIALING;
+            case "past_due", "unpaid", "paused", "incomplete_expired" -> SubscriptionStatus.PAST_DUE;
+            case "canceled" -> SubscriptionStatus.CANCELED;
+            case "incomplete" -> SubscriptionStatus.INCOMPLETE;
+            default -> {
+                log.warn("Unmapped Stripe status: {}", status);
+                yield null;
+            }
+        };
+    }
+
+    private Instant toInstant(Long epoch) {
+        return epoch != null ? Instant.ofEpochSecond(epoch) : null;
+    }
+
+    private Long resolvePlanId(Price price) {
+        if (price == null || price.getId() == null) return null;
+        return planRepository.findByStripePriceId(price.getId())
+                .map(Plan::getId)
+                .orElse(null);
+    }
+
+    private String extractSubscriptionId(Invoice invoice) {
+        var parent = invoice.getParent();
+        if (parent == null) return null;
+
+        var subDetails = parent.getSubscriptionDetails();
+        if (subDetails == null) return null;
+
+        return subDetails.getSubscription();
+    }
 }

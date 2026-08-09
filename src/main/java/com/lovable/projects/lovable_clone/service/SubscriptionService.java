@@ -6,4 +6,5 @@ public interface SubscriptionService {
 
     SubscriptionResponse getCurrentSubscription();
 
+    void activateSubscription(Long userId, Long planId, String subscriptionId, String customerId);
 }
