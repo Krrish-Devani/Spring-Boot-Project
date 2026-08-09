@@ -4,8 +4,11 @@ import com.lovable.projects.lovable_clone.dto.subscription.CheckoutRequest;
 import com.lovable.projects.lovable_clone.dto.subscription.CheckoutResponse;
 import com.lovable.projects.lovable_clone.dto.subscription.PortalResponse;
 import com.lovable.projects.lovable_clone.dto.subscription.SubscriptionResponse;
+import com.lovable.projects.lovable_clone.entity.Plan;
 import com.lovable.projects.lovable_clone.entity.Subscription;
+import com.lovable.projects.lovable_clone.entity.User;
 import com.lovable.projects.lovable_clone.enums.SubscriptionStatus;
+import com.lovable.projects.lovable_clone.error.ResourceNotFoundException;
 import com.lovable.projects.lovable_clone.mapper.SubscriptionMapper;
 import com.lovable.projects.lovable_clone.repository.PlanRepository;
 import com.lovable.projects.lovable_clone.repository.ProjectMemberRepository;
@@ -54,6 +57,20 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Override
     public void activateSubscription(Long userId, Long planId, String subscriptionId, String customerId) {
 
+        boolean exists = subscriptionRepository.existsByStripeSubscriptionId(subscriptionId);
+        if (exists) return;
+
+        User user = getUser(userId);
+        Plan plan = getPlan(planId);
+
+        Subscription subscription = Subscription.builder()
+                .user(user)
+                .plan(plan)
+                .stripeSubscriptionId(subscriptionId)
+                .status(SubscriptionStatus.INCOMPLETE)
+                .build();
+
+        subscriptionRepository.save(subscription);
     }
 
     @Override
@@ -74,5 +91,23 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Override
     public void markSubscriptionPastDue(String subId) {
 
+    }
+
+    ///  Utility methods
+
+    private User getUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId.toString()));
+    }
+
+    private Plan getPlan(Long planId) {
+        return planRepository.findById(planId)
+                .orElseThrow(() -> new ResourceNotFoundException("Plan", planId.toString()));
+
+    }
+
+    private Subscription getSubscription(String gatewaySubscriptionId) {
+        return subscriptionRepository.findByStripeSubscriptionId(gatewaySubscriptionId).orElseThrow(() ->
+                new ResourceNotFoundException("Subscription", gatewaySubscriptionId));
     }
 }
