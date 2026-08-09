@@ -12,4 +12,6 @@ public interface SubscriptionService {
     void activateSubscription(Long userId, Long planId, String subscriptionId, String customerId);
 
     void updateSubscription(String id, SubscriptionStatus status, Instant periodStart, Instant periodEnd, Boolean cancelAtPeriodEnd, Long planId);
+
+    void cancelSubscription(String id);
 }
