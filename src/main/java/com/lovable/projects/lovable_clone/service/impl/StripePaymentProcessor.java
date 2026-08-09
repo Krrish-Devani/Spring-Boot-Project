@@ -12,7 +12,9 @@ import com.lovable.projects.lovable_clone.security.AuthUtil;
 import com.lovable.projects.lovable_clone.service.PaymentProcessor;
 import com.lovable.projects.lovable_clone.service.SubscriptionService;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Invoice;
 import com.stripe.model.StripeObject;
+import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.AccessLevel;
@@ -86,6 +88,15 @@ public class StripePaymentProcessor implements PaymentProcessor {
     @Override
     public void handleWebhookEvent(String type, StripeObject stripeObject, Map<String, String> metadata) {
         log.debug("Handling stripe event: {}", type);
+
+        switch (type) {
+            case "checkout.session.completed" -> handleCheckoutSessionCompleted((Session) stripeObject, metadata); // one-time, on checkout completed
+            case "customer.subscription.updated" -> handleCustomerSubscriptionUpdated((Subscription) stripeObject); // when user cancels, upgrades or any updates
+            case "customer.subscription.deleted" -> handleCustomerSubscriptionDeleted((Subscription) stripeObject); // when subscription ends, revoke the access
+            case "invoice.paid" -> handleInvoicePaid((Invoice) stripeObject); // when invoice is paid
+            case "invoice.payment_failed" -> handleInvoicePaymentFailed((Invoice) stripeObject); // when invoice is not paid, mark as PAST_DUE
+            default -> log.debug("Ignoring the event: {}", type);
+        }
     }
 
 
