@@ -27,7 +27,6 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@RequestMapping("/api")
 public class BillingController {
 
     final PlanService planService;
@@ -37,24 +36,24 @@ public class BillingController {
     @Value("${stripe.webhook.secret}")
     private String webhookSecret;
 
-    @GetMapping("/plans")
+    @GetMapping("/api/plans")
     public ResponseEntity<List<PlanResponse>> getAllPlans() {
         return ResponseEntity.ok(planService.getAllActivePlans());
     }
 
-    @GetMapping("/me/subscription")
+    @GetMapping("/api/me/subscription")
     public ResponseEntity<SubscriptionResponse> getMySubscription() {
         return ResponseEntity.ok(subscriptionService.getCurrentSubscription());
     }
 
-    @PostMapping("/payments/checkout")
+    @PostMapping("/api/payments/checkout")
     public ResponseEntity<CheckoutResponse> createCheckoutResponse(
             @RequestBody CheckoutRequest request
     ) {
         return ResponseEntity.ok(paymentProcessor.createCheckoutSessionUrl(request));
     }
 
-    @PostMapping("/payments/portal")
+    @PostMapping("/api/payments/portal")
     public ResponseEntity<PortalResponse> openCustomerPortal() {
         return ResponseEntity.ok(paymentProcessor.openCustomerPortal());
     }

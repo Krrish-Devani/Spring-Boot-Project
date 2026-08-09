@@ -85,7 +85,7 @@ public class StripePaymentProcessor implements PaymentProcessor {
 
     @Override
     public void handleWebhookEvent(String type, StripeObject stripeObject, Map<String, String> metadata) {
-
+        log.debug("Handling stripe event: {}", type);
     }
 
 
