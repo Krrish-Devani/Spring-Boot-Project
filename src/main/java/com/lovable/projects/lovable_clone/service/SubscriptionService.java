@@ -16,4 +16,6 @@ public interface SubscriptionService {
     void cancelSubscription(String id);
 
     void renewSubscriptionPeriod(String subId, Instant periodStart, Instant periodEnd);
+
+    void markSubscriptionPastDue(String subId);
 }

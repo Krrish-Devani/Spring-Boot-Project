@@ -36,4 +36,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public void renewSubscriptionPeriod(String subId, Instant periodStart, Instant periodEnd) {
 
     }
+
+    @Override
+    public void markSubscriptionPastDue(String subId) {
+
+    }
 }
