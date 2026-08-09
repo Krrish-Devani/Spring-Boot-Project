@@ -31,4 +31,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public void cancelSubscription(String id) {
 
     }
+
+    @Override
+    public void renewSubscriptionPeriod(String subId, Instant periodStart, Instant periodEnd) {
+
+    }
 }

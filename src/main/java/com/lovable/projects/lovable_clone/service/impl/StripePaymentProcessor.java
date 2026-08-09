@@ -153,6 +153,29 @@ public class StripePaymentProcessor implements PaymentProcessor {
         subscriptionService.cancelSubscription(subscription.getId());
     }
 
+    private void handleInvoicePaid(Invoice invoice) {
+        String subId = extractSubscriptionId(invoice);
+        if(subId == null) return;
+
+        try {
+            Subscription subscription = Subscription.retrieve(subId); //sdk calling the Stripe server
+            var item = subscription.getItems().getData().get(0);
+
+            Instant periodStart = toInstant(item.getCurrentPeriodStart());
+            Instant periodEnd = toInstant(item.getCurrentPeriodEnd());
+
+            subscriptionService.renewSubscriptionPeriod(
+                    subId,
+                    periodStart,
+                    periodEnd
+            );
+
+        } catch (StripeException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     /// // Utility Methods
 
     private User getUser(Long userId) {
