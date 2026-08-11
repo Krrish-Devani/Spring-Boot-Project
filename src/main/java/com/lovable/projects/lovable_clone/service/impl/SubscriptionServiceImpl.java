@@ -16,6 +16,7 @@ import com.lovable.projects.lovable_clone.repository.SubscriptionRepository;
 import com.lovable.projects.lovable_clone.repository.UserRepository;
 import com.lovable.projects.lovable_clone.security.AuthUtil;
 import com.lovable.projects.lovable_clone.service.SubscriptionService;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -74,8 +75,43 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
-    public void updateSubscription(String id, SubscriptionStatus status, Instant periodStart, Instant periodEnd, Boolean cancelAtPeriodEnd, Long planId) {
+    @Transactional
+    public void updateSubscription(String gatewaySubscriptionId, SubscriptionStatus status, Instant periodStart,
+                                   Instant periodEnd, Boolean cancelAtPeriodEnd, Long planId) {
+        Subscription subscription = getSubscription(gatewaySubscriptionId);
 
+        boolean hasSubscriptionUpdated = false;
+
+        if(status != null && status != subscription.getStatus()) {
+            subscription.setStatus(status);
+            hasSubscriptionUpdated = true;
+        }
+
+        if(periodStart != null && !periodStart.equals(subscription.getCurrentPeriodStart())) {
+            subscription.setCurrentPeriodStart(periodStart);
+            hasSubscriptionUpdated = true;
+        }
+
+        if(periodEnd != null && !periodEnd.equals(subscription.getCurrentPeriodEnd())) {
+            subscription.setCurrentPeriodEnd(periodEnd);
+            hasSubscriptionUpdated = true;
+        }
+
+        if(cancelAtPeriodEnd != null && cancelAtPeriodEnd != subscription.getCancelAtPeriodEnd()) {
+            subscription.setCancelAtPeriodEnd(cancelAtPeriodEnd);
+            hasSubscriptionUpdated = true;
+        }
+
+        if(planId != null && !planId.equals(subscription.getPlan().getId())) {
+            Plan newPlan = getPlan(planId);
+            subscription.setPlan(newPlan);
+            hasSubscriptionUpdated = true;
+        }
+
+        if(hasSubscriptionUpdated) {
+            log.debug("Subscription has been updated: {}", gatewaySubscriptionId);
+            subscriptionRepository.save(subscription);
+        }
     }
 
     @Override
