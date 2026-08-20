@@ -1,5 +1,6 @@
 package com.lovable.projects.lovable_clone.entity;
 
+import com.lovable.projects.lovable_clone.enums.ChatEventType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
